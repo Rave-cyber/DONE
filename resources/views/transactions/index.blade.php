@@ -316,6 +316,16 @@
             </div>
             
             <div class="form-group">
+                <label for="contact">Contact Number</label>
+                <input type="text" class="form-control @error('contact') is-invalid @enderror" 
+                       id="contact" name="contact" placeholder="Enter customer contact number" 
+                       value="{{ old('contact') }}" required>
+                @error('contact')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+            </div>
+            
+            <div class="form-group">
                 <label for="weight">Laundry Weight</label>
                 <div class="input-group">
                     <input type="number" class="form-control @error('weight') is-invalid @enderror" 
@@ -375,30 +385,8 @@
                 </div>
             </div>
             
-            <div class="payment-method-card">
-                <div class="service-card-title">
-                    <i class="fas fa-credit-card"></i> Payment Method
-                </div>
-                <div class="payment-options">
-                    <div class="payment-option selected" onclick="selectPayment(this, 'Card')">
-                        <i class="fab fa-cc-visa"></i>
-                        <span>Card</span>
-                        <input type="radio" name="payment_method" value="Card" checked hidden>
-                    </div>
-                    
-                    <div class="payment-option" onclick="selectPayment(this, 'Cash')">
-                        <i class="fas fa-money-bill-wave"></i>
-                        <span>Cash</span>
-                        <input type="radio" name="payment_method" value="Cash" hidden>
-                    </div>
-                    
-                    <div class="payment-option" onclick="selectPayment(this, 'Mobile')">
-                        <i class="fas fa-mobile-alt"></i>
-                        <span>Mobile</span>
-                        <input type="radio" name="payment_method" value="Mobile" hidden>
-                    </div>
-                </div>
-            </div>
+            <!-- Hidden field for payment method, defaulting to Cash -->
+            <input type="hidden" name="payment_method" value="Cash">
             
             <div class="amount-display">
                 <div class="amount-label">Total Amount:</div>
@@ -437,6 +425,11 @@
                 </div>
                 
                 <div class="detail-item">
+                    <div class="detail-label">Contact Number:</div>
+                    <div class="detail-value" id="contactDisplay"></div>
+                </div>
+                
+                <div class="detail-item">
                     <div class="detail-label">Weight:</div>
                     <div class="detail-value" id="weightDisplay"></div>
                 </div>
@@ -444,11 +437,6 @@
                 <div class="detail-item">
                     <div class="detail-label">Services:</div>
                     <div class="detail-value" id="serviceTypeDisplay"></div>
-                </div>
-                
-                <div class="detail-item">
-                    <div class="detail-label">Payment Method:</div>
-                    <div class="detail-value" id="paymentMethodDisplay"></div>
                 </div>
                 
                 <div class="detail-item">
@@ -529,25 +517,44 @@
 
     function generateReceipt() {
         const orderName = document.getElementById('orderName').value;
+        const contact = document.getElementById('contact').value;
         const weight = document.getElementById('weight').value;
         const services = Array.from(document.querySelectorAll('input[name="service_type[]"]:checked'))
                             .map(el => el.value).join(', ');
-        const paymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
         const amount = document.getElementById('amount').textContent;
         const instructions = document.getElementById('specialInstructions').value || 'None';
         const date = new Date().toLocaleString();
+        
+        // Calculate VAT (12%)
+        const amountValue = parseFloat(amount);
+        const vatAmount = amountValue * 0.12;
+        const subtotal = amountValue - vatAmount;
+        
+        // Generate tracking ID (date-based)
+        const trackingId = 'TRK-' + Date.now().toString().substring(6);
 
-        return `LAUNDRY SERVICE RECEIPT\n` +
-               `==========================\n` +
-               `Customer: ${orderName}\n` +
+        return `================================\n` +
+               `        LAUNDRY SERVICE         \n` +
+               `================================\n` +
+               `Order ID: ${trackingId}\n` +
                `Date: ${date}\n` +
+               `Customer: ${orderName}\n` +
+               `Contact: ${contact}\n` +
+               `================================\n` +
                `Weight: ${weight} kg\n` +
                `Services: ${services}\n` +
-               `Payment Method: ${paymentMethod}\n` +
-               `Total Amount: ₱${amount}\n` +
                `Special Instructions: ${instructions}\n` +
-               `==========================\n` +
-               `Thank you for your business!`;
+               `================================\n` +
+               `Subtotal: ₱${subtotal.toFixed(2)}\n` +
+               `VAT (12%): ₱${vatAmount.toFixed(2)}\n` +
+               `Total Amount: ₱${amount}\n` +
+               `================================\n` +
+               `  For order tracking, visit:\n` +
+               `  https://laundrysite.com/track\n` +
+               `  and enter your Order ID\n` +
+               `================================\n` +
+               `Thank you for your business!\n` +
+               `================================`;
     }
 
     function downloadReceipt(content) {
@@ -577,9 +584,11 @@
         
         // Update modal display
         document.getElementById('orderNameDisplay').textContent = document.getElementById('orderName').value;
+        document.getElementById('contactDisplay').textContent = document.getElementById('contact').value;
         document.getElementById('weightDisplay').textContent = document.getElementById('weight').value + ' kg';
-        document.getElementById('paymentMethodDisplay').textContent = 
-            document.querySelector('input[name="payment_method"]:checked').value;
+        document.getElementById('serviceTypeDisplay').textContent = 
+            Array.from(document.querySelectorAll('input[name="service_type[]"]:checked'))
+                .map(el => el.value).join(', ') || 'None';
         
         const specialInstructions = document.getElementById('specialInstructions').value;
         document.getElementById('specialInstructionsDisplay').textContent = specialInstructions || 'None';

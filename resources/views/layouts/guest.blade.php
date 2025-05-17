@@ -15,26 +15,35 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
 
         <style>
-            .bg-light-blue {
-                background: linear-gradient(135deg, rgba(225, 240, 255, 0.9) 0%, rgba(200, 230, 255, 0.9) 100%);
+            .bg-gradient-blue {
+                background: linear-gradient(135deg, #e1f0ff 0%, #c8e6ff 100%);
             }
             .card-bg {
-                background: rgba(255, 255, 255, 0.85);
-                backdrop-filter: blur(8px);
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(148, 190, 245, 0.3);
+            }
+            .form-shadow {
+                box-shadow: 0 10px 25px -5px rgba(0, 91, 187, 0.1), 
+                            0 8px 10px -6px rgba(0, 91, 187, 0.1);
             }
         </style>
     </head>
-    <body class="font-sans text-gray-800 antialiased">
-        <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-light-blue">
-            <div class="mb-8">
+    <body class="font-sans text-blue-900 antialiased">
+        <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gradient-blue">
+            <div class="mb-8 mt-6">
                 <a href="/">
                     <!-- Replace with your custom logo -->
-                    <img src="{{ asset('img/logo-removebg-preview (1).png') }}" alt="Company Logo" class="w-32 h-auto">
+                    <img src="{{ asset('img/logo-removebg-preview (1).png') }}" alt="Company Logo" class="w-40 h-auto">
                 </a>
             </div>
 
-            <div class="w-full sm:max-w-md mt-6 px-8 py-8 card-bg shadow-xl rounded-2xl border border-blue-100">
+            <div class="w-full sm:max-w-md mt-4 px-6 py-8 card-bg shadow-xl rounded-xl form-shadow overflow-hidden">
                 {{ $slot }}
+            </div>
+            
+            <div class="mt-8 text-center text-sm text-blue-700">
+                &copy; {{ date('Y') }} Laundry Management System - All Rights Reserved
             </div>
         </div>
     </body>

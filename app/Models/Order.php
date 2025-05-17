@@ -12,6 +12,7 @@ class Order extends Model
     // Add all fields that can be mass-assigned
     protected $fillable = [
         'order_name',
+        'contact',
         'weight',
         'date',
         'service_type',
@@ -37,6 +38,12 @@ class Order extends Model
     public function employees()
     {
         return $this->belongsToMany(Employee::class, 'employee_assignments', 'order_id', 'employee_id');
+    }
+
+    // Relationship to payments
+    public function payments()
+    {
+        return $this->hasMany(Payment::class);
     }
 
     // Method to update status and log the change

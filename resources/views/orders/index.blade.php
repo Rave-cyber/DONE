@@ -60,17 +60,17 @@
             
             <div class="order-amount">₱{{ number_format($order->amount, 2) }}</div>
             
-            <div class="status-payment-container">
+                            <div class="status-payment-container">
                 <div class="status-container">
                     <div class="status-label">Status:</div>
-                    <div class="order-status status-{{ strtolower(str_replace(' ', '-', $order->status)) }}">
-                        {{ $order->status }}
+                    <div class="order-status">
+                        <i class="fas fa-circle status-icon"></i> {{ $order->status }}
                     </div>
                 </div>
                 <div class="payment-container">
                     <div class="payment-label">Payment:</div>
-                    <div class="payment-status payment-{{ $order->payment_status ?? 'pending' }}">
-                        {{ $order->payment_status ?? 'Pending' }}
+                    <div class="payment-status">
+                        <i class="fas fa-{{ ($order->payment_status ?? 'pending') == 'paid' ? 'check-circle' : 'clock' }}"></i> {{ $order->payment_status ?? 'Pending' }}
                     </div>
                 </div>
             </div>
@@ -101,9 +101,8 @@
                         <i class="fas fa-archive"></i> Archive
                     </button>
                 @else
-                    <button class="btn-action btn-mark-paid" onclick="markAsPaid({{ $order->id }})" 
-                        {{ ($order->payment_status ?? 'pending') == 'paid' ? 'disabled' : '' }}>
-                        <i class="fas fa-check-circle"></i> Mark Paid
+                    <button class="btn-action btn-payment" data-order-id="{{ $order->id }}" data-amount="{{ $order->amount }}">
+                        <i class="fas fa-money-bill-wave"></i> Pay
                     </button>
                 @endif
             </div>
@@ -177,14 +176,14 @@
                     <div class="status-payment-container">
                         <div class="status-container">
                             <div class="status-label">Status:</div>
-                            <div class="order-status status-completed">
-                                {{ $order->status }}
+                            <div class="order-status">
+                                <i class="fas fa-circle status-icon"></i> {{ $order->status }}
                             </div>
                         </div>
                         <div class="payment-container">
                             <div class="payment-label">Payment:</div>
-                            <div class="payment-status payment-paid">
-                                Paid
+                            <div class="payment-status">
+                                <i class="fas fa-check-circle"></i> Paid
                             </div>
                         </div>
                     </div>
@@ -226,6 +225,52 @@
         </div>
     </div>
 </div>
+
+<!-- Payment Modal -->
+<div class="modal fade" id="paymentModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Process Payment - Order #<span id="paymentOrderId"></span></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="paymentForm" method="POST">
+                @csrf
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="orderAmount">Total Amount</label>
+                        <input type="text" class="form-control" id="orderAmount" readonly>
+                    </div>
+                                    <div class="form-group">
+                    <label for="cashReceived">Cash Received</label>
+                    <input type="number" step="0.01" class="form-control" id="cashReceived" name="cash_received" required>
+                    <small class="form-text text-muted">Must be equal to or greater than order amount</small>
+                </div>
+                <div class="form-group">
+                    <label for="changeAmount">Change</label>
+                    <input type="text" class="form-control" id="changeAmount" readonly>
+                </div>
+                    <div class="form-group">
+                        <label for="paymentMethod">Payment Method</label>
+                        <select class="form-control" id="paymentMethod" name="payment_method" required>
+                            <option value="">Select Payment Method</option>
+                            <option value="Cash" selected>Cash</option>
+                            <option value="GCash">GCash</option>
+                            <option value="Credit Card">Credit Card</option>
+                            <option value="Bank Transfer">Bank Transfer</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Confirm Payment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('styles')
@@ -239,7 +284,7 @@
     
     .main-content {
         overflow-y: auto;
-        height: calc(100vh - 40px); /* Adjust padding/margins as needed */
+        height: calc(100vh - 40px);
         padding: 20px;
     }
     
@@ -279,7 +324,7 @@
         transition: all 0.3s ease;
         display: flex;
         flex-direction: column;
-        min-height: 420px; /* Consistent card height */
+        min-height: 420px;
         position: relative;
     }
     
@@ -375,65 +420,22 @@
         margin-bottom: 4px;
     }
     
-    .order-status {
+    .order-status, .payment-status {
         display: inline-block;
-        padding: 5px 10px;
-        border-radius: 20px;
-        font-weight: bold;
+        font-weight: 500;
         text-transform: capitalize;
         font-size: 0.85rem;
-        min-width: 90px;
-        text-align: center;
     }
     
-    .status-pending {
-        background-color: #FFD700;
-        color: #000;
+    .status-icon {
+        color: #079CD6;
+        margin-right: 5px;
+        font-size: 0.7rem;
     }
     
-    .status-washing {
-        background-color: #1E90FF;
-        color: #FFF;
-    }
-    
-    .status-drying {
-        background-color: #9370DB;
-        color: #FFF;
-    }
-    
-    .status-ironing {
-        background-color: #FF8C00;
-        color: #FFF;
-    }
-    
-    .status-ready {
-        background-color: #32CD32;
-        color: #FFF;
-    }
-    
-    .status-completed {
-        background-color: #228B22;
-        color: #FFF;
-    }
-    
-    .payment-status {
-        display: inline-block;
-        padding: 5px 10px;
-        border-radius: 20px;
-        font-weight: bold;
-        font-size: 0.85rem;
-        min-width: 80px;
-        text-align: center;
-    }
-    
-    .payment-pending {
-        background-color: #FF6347;
-        color: #FFF;
-    }
-    
-    .payment-paid {
-        background-color: #20B2AA;
-        color: #FFF;
+    .payment-status i {
+        color: #079CD6;
+        margin-right: 5px;
     }
     
     .status-select {
@@ -476,40 +478,27 @@
         margin-right: 0;
     }
     
-    .btn-view {
-        background: var(--secondary-color);
-        color: white;
+    .btn-action {
+        background: #f8f9fa;
+        color: #079CD6;
+        border: 1px solid #e9ecef;
     }
     
-    .btn-view:hover {
-        background: #1e2258;
+    .btn-action:hover {
+        background: #e9ecef;
+        color: #057baa;
     }
     
-    .btn-update {
-        background: var(--primary-color);
-        color: white;
+    /* Make sure action buttons fit well when there are multiple */
+    .order-card .order-actions {
+        flex-wrap: wrap;
+        gap: 5px;
     }
     
-    .btn-update:hover {
-        background: #057baa;
-    }
-    
-    .btn-mark-paid {
-        background: #28a745;
-        color: white;
-    }
-    
-    .btn-mark-paid:hover {
-        background: #218838;
-    }
-
-    .btn-archive {
-        background: #6c757d;
-        color: white;
-    }
-
-    .btn-archive:hover {
-        background: #5a6268;
+    .order-card .btn-action {
+        flex: 0 0 auto;
+        margin: 2px;
+        min-width: 80px;
     }
     
     .pagination-container {
@@ -566,10 +555,21 @@
     
     /* Archived cards special styling */
     .order-card.archived {
-        min-height: 350px; /* Slightly smaller for archived cards */
+        min-height: 350px;
         background-color: #f8f9fa;
     }
     
+    /* Payment Modal Styles */
+    #paymentModal .form-control:read-only {
+        background-color: #f8f9fa;
+        cursor: not-allowed;
+    }
+
+    #changeAmount {
+        font-weight: bold;
+        color: var(--primary-color);
+    }
+
     /* Sidebar Styles for Mobile */
     @media (max-width: 768px) {
         .order-cards-container {
@@ -577,7 +577,7 @@
         }
         
         .order-card {
-            min-height: auto; /* Allow cards to size naturally on mobile */
+            min-height: auto;
         }
         
         .sidebar {
@@ -639,13 +639,13 @@
                         </div>
                         <div class="col-md-6">
                             <p><strong>Status:</strong> 
-                                <span class="order-status status-${data.status ? data.status.toLowerCase().replace(' ', '-') : 'unknown'}">
-                                    ${data.status || 'Unknown'}
+                                <span class="order-status">
+                                    <i class="fas fa-circle status-icon"></i> ${data.status || 'Unknown'}
                                 </span>
                             </p>
                             <p><strong>Payment:</strong> 
-                                <span class="payment-status payment-${data.payment_status || 'pending'}">
-                                    ${data.payment_status || 'Pending'}
+                                <span class="payment-status">
+                                    <i class="fas fa-${(data.payment_status || 'pending') === 'paid' ? 'check-circle' : 'clock'}"></i> ${data.payment_status || 'Pending'}
                                 </span>
                             </p>
                             <p><strong>Amount:</strong> ₱${data.amount ? parseFloat(data.amount).toFixed(2) : '0.00'}</p>
@@ -807,25 +807,125 @@
         }
     }
 
-    function markAsPaid(orderId) {
-        if (!confirm('Mark this order as paid? This will also archive the order if it is completed.')) return;
+    // Calculate change when cash received amount changes
+    $(document).on('input', '#cashReceived', function() {
+        const cashReceived = parseFloat($(this).val()) || 0;
+        const orderAmount = parseFloat($('#orderAmount').val().replace('₱', '').replace(',', '')) || 0;
+        const change = cashReceived - orderAmount;
+        
+        if (change >= 0) {
+            $('#changeAmount').val('₱' + change.toFixed(2));
+        } else {
+            $('#changeAmount').val('Insufficient amount');
+        }
+    });
+
+    // Function removed as Mark as Paid button is no longer used
+
+    function showPaymentError(message) {
+        $('#paymentModal').find('.modal-body').html(`
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-circle"></i> ${message}
+            </div>
+            <button class="btn btn-secondary" onclick="$('#paymentModal').modal('hide')">
+                Close
+            </button>
+        `);
+    }
+
+    // Setup payment modal for an order
+    function setupPaymentModal(orderId, amount) {
+        $('#paymentOrderId').text(orderId);
+        $('#orderAmount').val('₱' + parseFloat(amount).toFixed(2));
+        $('#cashReceived').val('').focus();
+        $('#changeAmount').val('');
+        
+        // Set the form action
+        $('#paymentForm').attr('action', '/orders/' + orderId + '/process-payment');
+    }
+    
+    // Show payment modal button click handler
+    $(document).on('click', '.btn-payment', function() {
+        const orderId = $(this).data('order-id');
+        const amount = $(this).data('amount');
+        setupPaymentModal(orderId, amount);
+        $('#paymentModal').modal('show');
+    });
+    
+    // Handle payment form submission
+    $(document).on('submit', '#paymentForm', function(e) {
+        e.preventDefault();
+        
+        const form = $(this);
+        const submitBtn = form.find('[type="submit"]');
+        const url = form.attr('action');
+        
+        console.log('Form submitted', {
+            url: url,
+            formData: form.serialize()
+        });
+        
+        submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Processing...');
         
         $.ajax({
-            url: '/orders/' + orderId + '/mark-paid',
-            method: 'PUT',
-            data: {
-                _token: '{{ csrf_token() }}'
-            },
+            url: url,
+            method: 'POST',
+            data: form.serialize(),
             success: function(response) {
-                alert(response.message);
-                location.reload();
+                console.log('Payment success response:', response);
+                $('#paymentModal').modal('hide');
+                showAlert('success', 'Payment processed successfully!');
+                
+                // Generate and download receipt
+                if (response.receipt) {
+                    downloadReceipt(response.receipt);
+                }
+                
+                // Add a slight delay before reloading to ensure database updates are complete
+                setTimeout(function() {
+                    console.log('Reloading page after payment...');
+                    location.reload();
+                }, 500);
             },
             error: function(xhr) {
-                console.error('Error response:', xhr.responseJSON);
-                let errorMessage = xhr.responseJSON?.error || xhr.responseJSON?.message || 'An error occurred.';
-                alert('Error: ' + errorMessage);
+                console.error('Payment error response:', xhr.responseJSON);
+                let errorMessage = 'Payment processing failed.';
+                if (xhr.responseJSON && xhr.responseJSON.errors) {
+                    errorMessage = Object.values(xhr.responseJSON.errors).join('<br>');
+                } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                }
+                showAlert('danger', errorMessage);
+            },
+            complete: function() {
+                submitBtn.prop('disabled', false).html('Confirm Payment');
             }
         });
+    });
+
+    function showAlert(type, message) {
+        const alert = $(`
+            <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                ${message}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        `);
+        $('#alerts-container').append(alert);
+        setTimeout(() => alert.alert('close'), 5000);
+    }
+
+    function downloadReceipt(content) {
+        const blob = new Blob([content], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `receipt_payment_${new Date().toISOString().slice(0,10)}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
     }
 
     function archiveOrder(orderId) {

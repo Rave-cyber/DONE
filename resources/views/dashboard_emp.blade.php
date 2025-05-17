@@ -8,6 +8,10 @@
     <div class="content-wrapper">
         <div class="text-content">
             <h1>Cashier Dashboard</h1>
+            <div class="welcome-message">
+                <h2>Hello, {{ $user->name }}!</h2>
+                <p class="welcome-time">Logged in at {{ now()->format('h:i A') }} - {{ now()->format('d M Y') }}</p>
+            </div>
             
             <!-- Order Status Summary Cards -->
             <div class="status-summary">
@@ -268,6 +272,39 @@ document.addEventListener('DOMContentLoaded', function() {
     .status-card.ready {
         background-color: rgba(40, 167, 69, 0.2);
         border-left: 4px solid #28a745;
+    }
+
+    /* Welcome Message Styles */
+    .welcome-message {
+        background-color: rgba(255, 255, 255, 0.15);
+        border-radius: 10px;
+        padding: 15px 20px;
+        margin-bottom: 20px;
+        border-left: 4px solid rgba(255, 255, 255, 0.4);
+        animation: fadeIn 0.8s ease;
+    }
+
+    .welcome-message h2 {
+        font-size: 1.4rem;
+        margin-bottom: 5px;
+        color: white;
+    }
+
+    .welcome-time {
+        font-size: 0.9rem;
+        color: rgba(255, 255, 255, 0.8);
+        margin-bottom: 0;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
     @media (max-width: 768px) {

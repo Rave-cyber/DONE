@@ -6,6 +6,11 @@
     <form method="POST" action="{{ route('login') }}" class="bg-blue-50 p-8 rounded-lg shadow-md">
         @csrf
 
+        <div class="text-center mb-6">
+            <h2 class="text-2xl font-bold text-blue-800">Welcome Back</h2>
+            <p class="text-blue-600 text-sm mt-1">Sign in to your account</p>
+        </div>
+
         <!-- Email Address -->
         <div>
             <x-input-label for="email" :value="__('Email')" class="text-blue-800" />
@@ -32,17 +37,28 @@
             </label>
         </div>
 
-        <div class="flex items-center justify-end mt-4">
+        <div class="flex items-center justify-between mt-6">
             @if (Route::has('password.request'))
-                <a class="underline text-sm text-blue-600 hover:text-blue-800 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                <a class="text-sm text-blue-600 hover:text-blue-800 hover:underline" 
                    href="{{ route('password.request') }}">
                     {{ __('Forgot your password?') }}
                 </a>
             @endif
 
-            <x-primary-button class="ms-3 bg-blue-600 hover:bg-blue-700 focus:ring-blue-500">
-                {{ __('Log in') }}
+            <x-primary-button class="bg-blue-600 hover:bg-blue-700 focus:ring-blue-500">
+                {{ __('Sign In') }}
             </x-primary-button>
         </div>
+        
+        @if (Route::has('register'))
+            <div class="text-center mt-6 pt-4 border-t border-blue-100">
+                <p class="text-sm text-blue-700">
+                    {{ __("Don't have an account?") }} 
+                    <a href="{{ route('register') }}" class="font-medium text-blue-600 hover:underline">
+                        {{ __('Create one now') }}
+                    </a>
+                </p>
+            </div>
+        @endif
     </form>
 </x-guest-layout>

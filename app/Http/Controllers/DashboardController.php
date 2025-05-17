@@ -9,6 +9,8 @@ class DashboardController extends Controller
 {
     public function index()
     {
+        $user = auth()->user();
+        
         $pendingCount = Order::where('status', 'Pending')
                            ->where('is_archived', false)
                            ->count();
@@ -21,6 +23,6 @@ class DashboardController extends Controller
                          ->where('is_archived', false)
                          ->count();
 
-        return view('dashboard_emp', compact('pendingCount', 'washingCount', 'readyCount'));
+        return view('dashboard_emp', compact('pendingCount', 'washingCount', 'readyCount', 'user'));
     }
 }

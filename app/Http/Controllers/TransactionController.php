@@ -30,6 +30,7 @@ class TransactionController extends Controller
     {
         $validated = $request->validate([
             'customer_name' => 'required|string|max:255',
+            'contact' => 'required|string|max:20',
             'weight' => 'required|numeric|min:0.1',
             'order_date' => 'required|date',
             'services' => 'required|array|min:1',
@@ -46,6 +47,7 @@ class TransactionController extends Controller
             // Create as Order instead of Transaction
             $order = Order::create([
                 'order_name' => $validated['customer_name'],
+                'contact' => $validated['contact'],
                 'weight' => $validated['weight'],
                 'date' => $validated['order_date'],
                 'service_type' => $validated['services'],
